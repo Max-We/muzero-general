@@ -14,51 +14,79 @@ from tetris_gymnasium.envs.tetris import Tetris
 
 class MuZeroConfig:
     def __init__(self):
+        # General
         self.seed = 0  # Seed for numpy, torch and the game
-        self.max_num_gpus = None  # Fix the maximum number of GPUs to use. It's usually faster to use a single GPU (set it to 1) if it has enough memory. None will use every GPUs available
+        self.max_num_gpus = 1  # Use a single GPU for faster processing
 
         # Game
-        self.observation_shape = (3, 24, 24)  # RGB observation of size 24x24
-        self.action_space = list(range(8))  # Typical Tetris actions: left, right, rotate, down, drop, do nothing
+        self.observation_shape = (3, 24, 34)  # Typical Tetris board is 20x10, using 1 channel for piece positions
+        self.action_space = list(range(8))  # 7 actions: move left, move right, rotate clockwise, rotate counterclockwise, soft drop, hard drop, hold
         self.players = list(range(1))  # Single-player game
+        self.stacked_observations = 4  # Stack last 4 frames to capture piece movement
 
         # Self-Play
-        self.num_workers = 4  # Utilize multiple CPU cores for self-play
+        self.num_workers = 8  # Utilize multiple CPU cores for self-play
         self.selfplay_on_gpu = True  # Use GPU for self-play to speed up the process
-        self.max_moves = 10000  # Tetris games can be quite long
+        self.max_moves = 1000  # Limit very long games
         self.num_simulations = 50  # Moderate number of simulations per move
         self.discount = 0.997  # High discount factor for long-term planning
+        self.temperature_threshold = None  # Use visit_softmax_temperature_fn throughout the game
+
+        # Root prior exploration noise
+        self.root_dirichlet_alpha = 0.3
+        self.root_exploration_fraction = 0.25
+
+        # UCB formula
+        self.pb_c_base = 19652
+        self.pb_c_init = 1.25
 
         # Network
-        self.network = "resnet"  # ResNet is good for image-based inputs
-        self.support_size = 300  # Tetris can have high scores, increase support size
-        self.downsample = "resnet"  # Downsample the input to extract features
+        self.network = "resnet"  # ResNet works well for grid-based games like Tetris
+        self.support_size = 300  # Large support size for potentially high scores
+        self.downsample = "resnet"  # Use ResNet downsampling for feature extraction
         self.blocks = 6  # Moderate number of residual blocks
-        self.channels = 64  # Increase channels for more expressive power
+        self.channels = 128  # Increase channels for more expressive power
+        self.reduced_channels_reward = 64
+        self.reduced_channels_value = 64
+        self.reduced_channels_policy = 64
+        self.resnet_fc_reward_layers = [64, 64]
+        self.resnet_fc_value_layers = [64, 64]
+        self.resnet_fc_policy_layers = [64, 64]
 
         # Training
-        self.training_steps = 1000000  # Tetris is complex, require more training steps
-        self.batch_size = 256  # Larger batch size for GPU utilization
-        self.checkpoint_interval = 100  # Save model more frequently
+        self.results_path = pathlib.Path(__file__).resolve().parents[1] / "results" / "tetris" / datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+        self.save_model = True
+        self.training_steps = int(1e6)  # 1 million training steps
+        self.batch_size = 128  # Smaller batch size for more frequent updates
+        self.checkpoint_interval = int(1e3)
         self.value_loss_weight = 0.25  # As recommended in the paper
-        self.train_on_gpu = True  # Utilize GPU for training
+        self.train_on_gpu = torch.cuda.is_available()
 
         self.optimizer = "Adam"  # Adam often works well and requires less tuning
         self.weight_decay = 1e-4
+        self.momentum = 0.9  # Used only if optimizer is SGD
+
+        # Exponential learning rate schedule
         self.lr_init = 0.001  # Lower initial learning rate for stability
         self.lr_decay_rate = 0.95
         self.lr_decay_steps = 10000
 
         # Replay Buffer
-        self.replay_buffer_size = 10000  # Larger replay buffer for more diverse experiences
-        self.num_unroll_steps = 10
-        self.td_steps = 50
-        self.PER = True
+        self.replay_buffer_size = int(1e6)  # Large replay buffer for diverse experiences
+        self.num_unroll_steps = 5  # Unroll for 5 steps in the future
+        self.td_steps = 10  # Use 10-step return for value estimation
+        self.PER = True  # Use Prioritized Experience Replay
         self.PER_alpha = 1.0  # Full prioritization as suggested in the paper
 
         # Reanalyze
         self.use_last_model_value = True
-        self.reanalyse_on_gpu = True  # Utilize GPU for reanalysis
+        self.reanalyse_on_gpu = True
+
+        # Self-play vs training ratio
+        self.self_play_delay = 0
+        self.training_delay = 0
+        self.ratio = None  # Disable fixed ratio, let self-play and training run independently
+
 
     def visit_softmax_temperature_fn(self, trained_steps):
         """
