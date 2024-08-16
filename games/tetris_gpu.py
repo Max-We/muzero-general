@@ -24,6 +24,10 @@ class MuZeroConfig:
         self.players = list(range(1))  # Single-player game
         self.stacked_observations = 4  # Stack last 4 frames to capture piece movement
 
+        # Evaluate
+        self.muzero_player = 0  # Turn Muzero begins to play (0: MuZero plays first, 1: MuZero plays second)
+        self.opponent = None  # Hard coded agent that MuZero faces to assess his progress in multiplayer games. It doesn't influence training. None, "random" or "expert" if implemented in the Game class
+
         # Self-Play
         self.num_workers = 8  # Utilize multiple CPU cores for self-play
         self.selfplay_on_gpu = True  # Use GPU for self-play to speed up the process
@@ -41,6 +45,7 @@ class MuZeroConfig:
         self.pb_c_init = 1.25
 
         # Network
+        self.downsample = False  # Downsample observations before representation network, False / "CNN" (lighter) / "resnet" (See paper appendix Network Architecture)
         self.network = "resnet"  # ResNet works well for grid-based games like Tetris
         self.support_size = 300  # Large support size for potentially high scores
         self.downsample = "resnet"  # Use ResNet downsampling for feature extraction
@@ -57,7 +62,7 @@ class MuZeroConfig:
         self.results_path = pathlib.Path(__file__).resolve().parents[1] / "results" / "tetris" / datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         self.save_model = True
         self.training_steps = int(1e6)  # 1 million training steps
-        self.batch_size = 128  # Smaller batch size for more frequent updates
+        self.batch_size = 1024  # Smaller batch size for more frequent updates
         self.checkpoint_interval = int(1e3)
         self.value_loss_weight = 0.25  # As recommended in the paper
         self.train_on_gpu = torch.cuda.is_available()
