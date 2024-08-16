@@ -50,19 +50,19 @@ class MuZeroConfig:
         self.pb_c_init = 1.25
 
         ### Network
-        self.network = "fullyconnected"  # "resnet" / "fullyconnected"
+        self.network = "resnet"  # "resnet" / "fullyconnected"
         self.support_size = 300  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size. Choose it so that support_size <= sqrt(max(abs(discounted reward)))
 
         # Residual Network
         self.downsample = False  # Downsample observations before representation network, False / "CNN" (lighter) / "resnet" (See paper appendix Network Architecture)
-        self.blocks = 1  # Number of blocks in the ResNet
-        self.channels = 2  # Number of channels in the ResNet
-        self.reduced_channels_reward = 2  # Number of channels in reward head
-        self.reduced_channels_value = 2  # Number of channels in value head
-        self.reduced_channels_policy = 2  # Number of channels in policy head
-        self.resnet_fc_reward_layers = []  # Define the hidden layers in the reward head of the dynamic network
-        self.resnet_fc_value_layers = []  # Define the hidden layers in the value head of the prediction network
-        self.resnet_fc_policy_layers = []  # Define the hidden layers in the policy head of the prediction network
+        self.blocks = 16  # Number of blocks in the ResNet
+        self.channels = 256  # Number of channels in the ResNet
+        self.reduced_channels_reward = 256  # Number of channels in reward head
+        self.reduced_channels_value = 256  # Number of channels in value head
+        self.reduced_channels_policy = 256  # Number of channels in policy head
+        self.resnet_fc_reward_layers = [256, 256]  # Define the hidden layers in the reward head of the dynamic network
+        self.resnet_fc_value_layers = [256, 256]  # Define the hidden layers in the value head of the prediction network
+        self.resnet_fc_policy_layers = [256, 256]  # Define the hidden layers in the policy head of the prediction network
 
         # Fully Connected Network
         self.encoding_size = 10
