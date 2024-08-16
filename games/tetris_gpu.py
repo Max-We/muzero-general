@@ -16,7 +16,7 @@ class MuZeroConfig:
     def __init__(self):
         # General
         self.seed = 0  # Seed for numpy, torch and the game
-        self.max_num_gpus = 1  # Use a single GPU for faster processing
+        # self.max_num_gpus = 1  # Use a single GPU for faster processing
 
         # Game
         self.observation_shape = (3, 24, 34)  # Typical Tetris board is 20x10, using 1 channel for piece positions
