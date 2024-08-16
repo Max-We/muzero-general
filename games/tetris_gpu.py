@@ -31,7 +31,7 @@ class MuZeroConfig:
         # Self-Play
         self.num_workers = 8  # Utilize multiple CPU cores for self-play
         self.selfplay_on_gpu = True  # Use GPU for self-play to speed up the process
-        self.max_moves = 1000  # Limit very long games
+        self.max_moves = 27000  # Limit very long games
         self.num_simulations = 50  # Moderate number of simulations per move
         self.discount = 0.997  # High discount factor for long-term planning
         self.temperature_threshold = None  # Use visit_softmax_temperature_fn throughout the game
@@ -45,10 +45,9 @@ class MuZeroConfig:
         self.pb_c_init = 1.25
 
         # Network
-        self.downsample = False  # Downsample observations before representation network, False / "CNN" (lighter) / "resnet" (See paper appendix Network Architecture)
         self.network = "resnet"  # ResNet works well for grid-based games like Tetris
         self.support_size = 300  # Large support size for potentially high scores
-        self.downsample = "resnet"  # Use ResNet downsampling for feature extraction
+        self.downsample = False  # Downsample observations before representation network, False / "CNN" (lighter) / "resnet" (See paper appendix Network Architecture)
         self.blocks = 6  # Moderate number of residual blocks
         self.channels = 128  # Increase channels for more expressive power
         self.reduced_channels_reward = 64
